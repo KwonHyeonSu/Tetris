@@ -5,13 +5,17 @@ using UnityEngine.UI;
 
 public class Stage : MonoBehaviour
 {
+    [Header("특수 효과")]
     private SoundManager soundManager;
+    public ParticleSystem particle_BlockDown;
 
     [Header("게임 오브젝트 및 Transform")]
     public GameObject tilePref;
     public GameObject panel_GameOver;
     private GameObject GhostTetromino = null;
+    public GameObject Panel_Pause;
 
+    public Transform cam;
     public Transform Background;
     public Transform Board;
     public Transform Tetromino;
@@ -50,7 +54,12 @@ public class Stage : MonoBehaviour
     private float timeC_Right = 0.0f;
     private float timeC_Right_2 = 0.0f;
 
+    private bool canHold = true;
     private string playerName = null;
+
+    public Vector3 cam_FirstPos;
+    private Coroutine coroutine_Effect = null;
+    public GameState gameState;
 
     void Start()
     {
@@ -72,6 +81,8 @@ public class Stage : MonoBehaviour
         panel_GameOver.SetActive(false);
         txt_PressAnyKey.gameObject.SetActive(true);
 
+        cam_FirstPos = cam.position;
+
         indexList = new List<int>();
 
         soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
@@ -89,8 +100,6 @@ public class Stage : MonoBehaviour
 
     }
 
-
-public GameState gameState;
     void Update()
     {
         //inspector 확인용
@@ -133,7 +142,6 @@ public GameState gameState;
 
     private float timePause = 0.0f;
     private float timePause_Max = 0.1f;
-
 
     void KeyInput()
     {
@@ -217,7 +225,7 @@ public GameState gameState;
         }
 
         //아래 한칸
-        if(Input.GetKey(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
             timeC_down += Time.deltaTime;
             if(timeC_down > maxTime)
@@ -255,8 +263,7 @@ public GameState gameState;
     
     }
 
-    public GameObject Panel_Pause;
-    private bool canHold = true;
+    
     void HoldTetromino()
     {
         if(canHold)
@@ -322,11 +329,14 @@ public GameState gameState;
 
             if(root.name == "Tetromino" && moveDir == Vector2.down && !isRotate)
             {
+                //파티클 생성
+                CreateParticleWhenDown();
+                                
                 AddToBoard();
 
                 CheckBoard();
 
-                StartCoroutine(MoveEffect());
+                coroutine_Effect = StartCoroutine(MoveEffect());
 
                 soundManager.Sound_Tetromino_Down();
 
@@ -335,6 +345,7 @@ public GameState gameState;
                     CreateTetromino(Tetromino);
                     CreateGhostTetromino();
                 }
+
             }
 
             return false;
@@ -346,22 +357,39 @@ public GameState gameState;
         return true;
     }
 
-    //카메라를 움직인다.
-    public Transform cam;
+    void CreateParticleWhenDown()
+    {
+        foreach(Transform node in Tetromino)
+        {
+            int x = Mathf.RoundToInt(node.position.x + width_half);
+            int y = Mathf.RoundToInt(node.position.y + height_half);
+            Transform col = Board.Find((y-1).ToString());
+
+            if(y == 0 || (col != null && col.Find(x.ToString()) != null))
+            {
+                ObjectPool.GetObject("BlockDown", node.position);
+            }
+        }
+
+    }
+
+    
     IEnumerator MoveEffect()
     {
+        if(coroutine_Effect != null)
+            StopCoroutine(coroutine_Effect);
+
         Vector3 oldPos = cam.position;
         cam.position += new Vector3(Random.Range(0.0f, 0.2f), Random.Range(0.0f, 0.2f), 0);
-        Vector3 changedPos = cam.position;
         
         float curT = 0.0f;
-        while(cam.position != oldPos)
+        while(cam.position != cam_FirstPos)
         {
             curT += Time.deltaTime;
-            cam.position = Vector3.Lerp(cam.position, oldPos, curT);
+            cam.position = Vector3.Lerp(cam.position, cam_FirstPos, curT * 0.5f);
             yield return null;
         }
-        cam.position = oldPos;
+        cam.position = cam_FirstPos;
 
         Debug.Log("end");
         yield return null;
@@ -427,6 +455,7 @@ public GameState gameState;
             {
                 for(int i=0;i<width;i++)
                 {
+                    ObjectPool.GetObject("BlockBoom", col.GetChild(i).position);
                     Destroy(col.GetChild(i).gameObject);
                 }
                 col.DetachChildren();

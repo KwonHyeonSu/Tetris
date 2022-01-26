@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class RankManager : MonoBehaviour
 {
@@ -71,19 +72,24 @@ public class RankManager : MonoBehaviour
 
     }
 
+
     private string GetURL = "http://gotgam.dothome.co.kr/GetData.php";
     public Dictionary<string, int> GetRank()
     {
         WWWForm form = new WWWForm();
         WWW www = new WWW(GetURL, form);
 
-        while(!www.isDone)
+        
+        int tryCount = 0;
+        while(!www.isDone && tryCount < 1000)
         {
             Debug.Log("Connecting...");
+            tryCount++;
         }
 
         return Indexing(www.text);
     }
+
 
     public Dictionary<string, int> Indexing(string text)
     {

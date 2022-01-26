@@ -13,7 +13,7 @@ public class Ranking : MonoBehaviour
 
     void Awake()
     {
-        
+        gameObject.SetActive(false);
     }
 
     void OnEnable()
@@ -29,9 +29,9 @@ public class Ranking : MonoBehaviour
     {
         Dictionary<string, int> sorted = rankManager.GetRank();
 
-        int rank = 0;
+        yield return sorted;
 
-        yield return null;
+        int rank = 0;
 
         foreach(KeyValuePair<string, int> rankData in sorted)
         {
