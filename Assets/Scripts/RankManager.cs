@@ -74,6 +74,8 @@ public class RankManager : MonoBehaviour
 
 
     private string GetURL = "http://gotgam.dothome.co.kr/GetData.php";
+
+
     public Dictionary<string, int> GetRank()
     {
         WWWForm form = new WWWForm();
@@ -87,7 +89,14 @@ public class RankManager : MonoBehaviour
             tryCount++;
         }
 
-        return Indexing(www.text);
+        if(www.isDone)
+            return Indexing(www.text);
+
+        else{
+
+            Debug.Log("랭크 불러오기 실패");
+            return null;
+        }
     }
 
 

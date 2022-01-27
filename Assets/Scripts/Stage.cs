@@ -36,7 +36,7 @@ public class Stage : MonoBehaviour
     
     private int width_half;
     private int height_half;
-    private int howManyList = 5;
+    private int howManyList = 4;
 
     [SerializeField]
     private int CurIndex = -1;
@@ -71,7 +71,7 @@ public class Stage : MonoBehaviour
 
         CreateTetromino(Tetromino);
 
-        txt_Score.text = "SCORE " + T.SCORE.ToString();
+        txt_Score.text = T.SCORE.ToString();
     }
 
     //씬 로드 시 변수 및 오브젝트 초기화
@@ -85,6 +85,8 @@ public class Stage : MonoBehaviour
 
         indexList = new List<int>();
 
+        tilePref.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Tile1");
+        
         soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
 
         //howmanyList 개수 만큼 리스트를 만듬
@@ -625,22 +627,27 @@ public class Stage : MonoBehaviour
         {
             GameObject go = new GameObject(i.ToString());
             go.transform.parent = TetrominoIndex;
-            go.transform.localPosition = new Vector2(0, -5*i);
+            go.transform.localPosition = new Vector2(0, -3*i);
             go.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
-
-            SetTetromino(indexList[i], go.transform);
+            if(i == 0)
+                SetTetromino(indexList[i], go.transform, false);
+            else
+                SetTetromino(indexList[i], go.transform, true);
         }
     }
 
-    void SetTetromino(int index, Transform parent)
+    void SetTetromino(int index, Transform parent, bool Dark = false)
     {
-        Color32 color = Color.white;
+        Color color = Color.white;
+        byte opacity = 255;
+        if(Dark)
+            opacity = 100;
 
         switch(index)
         {
             //하늘색 l
             case 0:
-                color = new Color32(153, 255, 255, 255);
+                color = new Color32(153, 255, 255, opacity);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(0,-1), color);
@@ -649,7 +656,7 @@ public class Stage : MonoBehaviour
 
             //주황색 ㄴ
             case 1:
-                color = new Color32(255, 204, 153, 255);
+                color = new Color32(255, 204, 153, opacity);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,-1), color);
                 CreateTile(parent, new Vector2(1,-1), color);
@@ -658,7 +665,7 @@ public class Stage : MonoBehaviour
 
             //핑크 ㅓ
             case 2:
-                color = new Color32(255, 204, 255, 255);
+                color = new Color32(255, 204, 255, opacity);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,-1), color);
@@ -667,7 +674,7 @@ public class Stage : MonoBehaviour
 
             //노랑 ㅁ
             case 3:
-                color = new Color32(255, 255, 153, 255);
+                color = new Color32(255, 255, 153, opacity);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(1,1), color);
                 CreateTile(parent, new Vector2(0,0), color);
@@ -676,7 +683,7 @@ public class Stage : MonoBehaviour
 
             //파랑 ㄴ 좌우 반전
             case 4:
-                color = new Color32(153, 204, 255, 255);
+                color = new Color32(153, 204, 255, opacity);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,-1), color);
@@ -685,7 +692,7 @@ public class Stage : MonoBehaviour
 
             //초록 ㄱㄴ 좌우 반전
             case 5:
-                color = new Color32(153, 255, 153, 255);
+                color = new Color32(153, 255, 153, opacity);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(1, 1), color);
@@ -694,7 +701,7 @@ public class Stage : MonoBehaviour
 
             //빨강 ㄱㄴ
             case 6:
-                color = new Color32(255, 153, 153, 255);
+                color = new Color32(255, 153, 153, opacity);
                 CreateTile(parent, new Vector2(0,0), color);
                 CreateTile(parent, new Vector2(0,1), color);
                 CreateTile(parent, new Vector2(-1, 1), color);
@@ -721,6 +728,7 @@ public class Stage : MonoBehaviour
 
         Color color = Color.grey;
 
+        /*
         //중앙
         color.a = 0.5f;
         for(int x=-width_half; x < width_half ; x++)
@@ -730,7 +738,7 @@ public class Stage : MonoBehaviour
                 CreateTile(Background, new Vector2(x, y), color);
             }
         }
-
+        
         //좌우
         color.a = 0.8f;
         for(int y = -height_half;y<height_half;y++)
@@ -744,6 +752,7 @@ public class Stage : MonoBehaviour
         {
             CreateTile(Background, new Vector2(x, -height_half-1), color);
         }
+        */
     }
 
     void CreateTile(Transform parent, Vector2 position, Color color)
@@ -751,6 +760,7 @@ public class Stage : MonoBehaviour
         GameObject go = Instantiate(tilePref);
         go.transform.parent = parent;
         go.transform.localPosition = position;
+        go.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
 
         Tile tile = go.GetComponent<Tile>();
         tile.color = color;

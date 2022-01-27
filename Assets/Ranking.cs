@@ -13,12 +13,12 @@ public class Ranking : MonoBehaviour
 
     void Awake()
     {
-        gameObject.SetActive(false);
+        if(rankManager == null)
+            rankManager = GameObject.Find("RankManager").GetComponent<RankManager>();
     }
 
     void OnEnable()
     {
-
         if(rankManager == null)
             rankManager = GameObject.Find("RankManager").GetComponent<RankManager>();
         StartCoroutine(GetRankingData());
@@ -27,11 +27,26 @@ public class Ranking : MonoBehaviour
 
     IEnumerator GetRankingData()
     {
-        Dictionary<string, int> sorted = rankManager.GetRank();
+        WWWForm form = new WWWForm();
+        WWW www = new WWW(GetURL, form);
+
+        yield return www;
+
+        Dictionary<string, int> sorted = rankManager.Indexing(www.text);
 
         yield return sorted;
 
         int rank = 0;
+
+        if(Content.childCount != 0)
+        {
+            for(int i=0;i<Content.childCount;i++)
+            {
+                Transform DesGo = Content.GetChild(i);
+                Destroy(DesGo.gameObject);
+            }
+            Content.DetachChildren();
+        }
 
         foreach(KeyValuePair<string, int> rankData in sorted)
         {
@@ -40,10 +55,16 @@ public class Ranking : MonoBehaviour
         }
     }
 
+    private string GetURL = "http://gotgam.dothome.co.kr/GetData.php";
+
+
 
 
     public void MakeRanking(int rank, string name, string score)
     {
+        
+        
+
         GameObject ob = Instantiate(rankBar);
         ob.transform.SetParent(Content);
         ob.transform.localScale = new Vector3(1,1,1);
